@@ -5,17 +5,13 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 
+import { paths } from "./routes";
 import CharacterProvider from "./provider/character";
 import SwapiService, { SwapiServiceController } from "./service/swapi";
-import ComponentPreloader from "./components/ComponentPreloader";
+import ComponentPreloader from "./components/PagePreloader";
 
 const Main = lazy(() => import("./pages/Main"));
 const Character = lazy(() => import("./pages/Character"));
-
-const paths = {
-  root: () => "/",
-  character: () => `${paths.root()}:characterId`,
-};
 
 const App: FC = () => {
   const swapiService = useRef<SwapiServiceController>(
@@ -39,10 +35,7 @@ const App: FC = () => {
       <IntlProvider locale="en">
         <CharacterProvider swapiService={swapiService.current}>
           <Container component="main" maxWidth="md" sx={{ height: "100%" }}>
-            <Box
-              component="article"
-              sx={{ paddingTop: 4, paddingBottom: 4, height: "100%" }}
-            >
+            <Box component="article" sx={{ height: "100%" }}>
               <BrowserRouter>
                 <Routes>
                   <Route path={paths.character()} element={characterElement} />

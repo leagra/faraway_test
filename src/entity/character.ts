@@ -17,6 +17,7 @@ export interface CharacterDTO {
 }
 
 class Character {
+  id?: string;
   name: string;
   height: string;
   mass: string;
@@ -50,6 +51,12 @@ class Character {
     edited,
     url,
   }: CharacterDTO) {
+    const matchedId = url.match(/\d+/);
+
+    if (matchedId) {
+      this.id = matchedId[0];
+    }
+
     this.birthYear = birth_year;
     this.eyeColor = eye_color;
     this.hairColor = hair_color;

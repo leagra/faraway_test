@@ -19,8 +19,10 @@ interface ListCharacterResult {
   characters: Character[];
 }
 
-type ListCharacter = (page?: number) => Promise<ListCharacterResult | void>;
-type GetCharacter = (charactedId: number) => Promise<Character | void>;
+type ListCharacter = (
+  page?: number
+) => Promise<ListCharacterResult | undefined>;
+type GetCharacter = (charactedId: string) => Promise<Character | undefined>;
 
 export interface SwapiServiceController {
   listCharacter: ListCharacter;
@@ -34,7 +36,7 @@ interface CharactersQueryParameters {
 const paths = {
   characters: (query?: CharactersQueryParameters) =>
     `people${query ? `?${queryString.stringify(query)}` : ""}`,
-  character: (charactedId: number) => `${paths.characters()}/${charactedId}`,
+  character: (charactedId: string) => `${paths.characters()}/${charactedId}`,
 };
 
 const mapListCharacterResult: (

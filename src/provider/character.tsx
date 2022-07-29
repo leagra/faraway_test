@@ -3,8 +3,8 @@ import React, { FC, ReactNode, useState, createContext, useMemo } from "react";
 import Character from "../entity/character";
 import { SwapiServiceController } from "../service/swapi";
 
-type ListCharacter = (page?: number) => Promise<Character[] | void>;
-type GetCharacter = (characterId: number) => Promise<Character | void>;
+type ListCharacter = (page?: number) => Promise<void>;
+type GetCharacter = (characterId: string) => Promise<Character | undefined>;
 
 export interface CharacterController {
   isLoading: boolean;
@@ -43,21 +43,18 @@ const CharacterProvider: FC<CharacterProviderProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const listCharacter: ListCharacter = async (page) => {
+  const listCharacter: ListCharacter = async () => {
     try {
       setIsLoading(true);
 
-      const result = await swapiService.listCharacter(page ?? currentPage);
-
-      if (page) {
-        setCurrentPage(page);
-      }
+      const result = await swapiService.listCharacter(currentPage);
 
       if (result) {
         const { count, characters } = result;
 
         setCount(count);
-        setCharacters(characters);
+        setCharacters((oldCharacters) => [...oldCharacters, ...characters]);
+        setCurrentPage((oldCurrentPage) => oldCurrentPage + 1);
       }
     } catch (err) {
       console.error(err);
@@ -67,7 +64,29 @@ const CharacterProvider: FC<CharacterProviderProps> = ({
   };
 
   const getCharacter: GetCharacter = async (characterId) => {
-    const character = swapiService.getCharacter(characterId);
+    try {
+      const currentCharacter = characters.find(
+        (value) => value.id === characterId
+      );
+
+      if (currentCharacter) {
+        return currentCharacter;
+      }
+
+      setIsLoading(true);
+
+      const character = await swapiService.getCharacter(characterId);
+
+      if (character) {
+        setCharacters((oldCharacters) => [...oldCharacters, character]);
+
+        return character;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

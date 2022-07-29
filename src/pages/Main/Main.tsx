@@ -1,30 +1,44 @@
-import React, { FC, ReactElement, useContext, useEffect } from "react";
+import React, { FC, ReactElement, useContext, useEffect, useMemo } from "react";
+import { Link as BaseLink } from "react-router-dom";
 import { useIntl, defineMessages } from "react-intl";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
+import { styled } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Skeleton from "@mui/material/Skeleton";
 
+import { paths } from "../../routes";
 import { CharacterContext } from "../../provider/character";
 import Character from "../../entity/character";
-import TablePreloader from "./TablePreloader";
+
+const Link = styled(BaseLink)({
+  textDecoration: "none",
+});
 
 const messages = defineMessages({
-  name: {
-    id: "name",
+  mainPageName: {
+    id: "mainPageName",
     defaultMessage: "Name",
   },
-  birthYear: {
-    id: "birthYear",
+  mainPageBirthYear: {
+    id: "mainPageBirthYear",
     defaultMessage: "Birth year",
   },
-  gender: {
-    id: "gender",
+  mainPageGender: {
+    id: "mainPageGender",
     defaultMessage: "Gender",
+  },
+  mainPageMore: {
+    id: "mainPageMore",
+    defaultMessage: "More",
+  },
+  mainPageLoadMore: {
+    id: "mainPageLoadMore",
+    defaultMessage: "Load More",
   },
 });
 
@@ -44,51 +58,103 @@ const Main: FC = () => {
     listCharacter();
   }, []);
 
-  console.log(characters);
+  const showLoadMoreButton = useMemo(
+    () => !isLoading && Math.ceil(count / rowsPerPage) >= currentPage,
+    [isLoading, count, rowsPerPage, currentPage]
+  );
 
-  const handlePageChange = (_: unknown, page: number) => {
-    listCharacter(page + 1);
+  const handleLoadMore = () => {
+    listCharacter();
   };
 
-  const renderTableRow = (character: Character): ReactElement => (
-    <TableRow key={character.name} hover={true}>
-      <TableCell>{character.name}</TableCell>
-      <TableCell>{character.birthYear}</TableCell>
-      <TableCell>{character.gender}</TableCell>
-    </TableRow>
+  const renderLoadMoreButton = (): ReactElement => (
+    <Grid item={true} xs={4}>
+      <Card>
+        <CardActions>
+          <Button onClick={handleLoadMore}>
+            {intl.formatMessage(messages.mainPageLoadMore)}
+          </Button>
+        </CardActions>
+      </Card>
+    </Grid>
   );
 
-  const renderTableHead = (): ReactElement => (
-    <TableHead>
-      <TableRow>
-        <TableCell>{intl.formatMessage(messages.name)}</TableCell>
-        <TableCell>{intl.formatMessage(messages.birthYear)}</TableCell>
-        <TableCell>{intl.formatMessage(messages.gender)}</TableCell>
-      </TableRow>
-    </TableHead>
+  const renderCard = (character: Character): ReactElement => (
+    <Grid key={character.name} item={true} xs={4}>
+      <Card>
+        <CardContent>
+          <Typography variant="h5">{character.name}</Typography>
+          <Typography variant="body2">
+            {intl.formatMessage(messages.mainPageBirthYear)}:{" "}
+            {character.birthYear}
+          </Typography>
+          <Typography variant="body2">
+            {intl.formatMessage(messages.mainPageGender)}: {character.gender}
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button>
+            <Link to={paths.toCharacter(character.id)}>
+              {intl.formatMessage(messages.mainPageMore)}
+            </Link>
+          </Button>
+        </CardActions>
+      </Card>
+    </Grid>
   );
 
-  const renderPagination = (): ReactElement => (
-    <TablePagination
-      component="div"
-      count={count}
-      rowsPerPage={rowsPerPage}
-      page={currentPage - 1}
-      onPageChange={handlePageChange}
-    />
+  const renderPreloaderCard = (): ReactElement => (
+    <Grid item={true} xs={4}>
+      <Card>
+        <CardContent>
+          <Typography variant="h5">
+            <Skeleton />
+          </Typography>
+          <Typography variant="body2">
+            <Skeleton />
+          </Typography>
+          <Typography variant="body2">
+            <Skeleton />
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button>
+            <Skeleton sx={{ width: "100%" }} />
+          </Button>
+        </CardActions>
+      </Card>
+    </Grid>
+  );
+
+  const renderPreloader = (): ReactElement => (
+    <>
+      {renderPreloaderCard()}
+      {renderPreloaderCard()}
+      {renderPreloaderCard()}
+    </>
   );
 
   return (
-    <Paper component="section" sx={{ height: "100%", position: "relative" }}>
-      <TableContainer sx={{ height: "100%" }}>
-        {isLoading && <TablePreloader />}
-        <Table>
-          {renderTableHead()}
-          <TableBody>{characters.map(renderTableRow)}</TableBody>
-          {renderPagination()}
-        </Table>
-      </TableContainer>
-    </Paper>
+    <Box
+      component="section"
+      sx={{
+        height: "100%",
+        position: "relative",
+      }}
+    >
+      <Grid
+        sx={{
+          paddingTop: 4,
+          paddingBottom: 4,
+        }}
+        container={true}
+        spacing={2}
+      >
+        {characters.map(renderCard)}
+        {isLoading && renderPreloader()}
+        {showLoadMoreButton && renderLoadMoreButton()}
+      </Grid>
+    </Box>
   );
 };
 
