@@ -68,8 +68,6 @@ const Character: FC = () => {
   const { isLoading, getCharacter } = useContext(CharacterContext);
   const [character, setCharacter] = useState<CharacterEntity | undefined>();
 
-  console.log(character);
-
   useEffect(() => {
     if (params.characterId) {
       getCharacter(params.characterId).then(setCharacter);
